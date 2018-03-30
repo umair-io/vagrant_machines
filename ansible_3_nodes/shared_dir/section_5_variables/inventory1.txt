@@ -1,3 +1,0 @@
-# Sample Inventory File
-
-localhost ansible_connection=local nameserver_ip=10.1.250.11
