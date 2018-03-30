@@ -1,1 +1,2 @@
 ansible_3_nodes/shared_dir/
+*.vagrant/
