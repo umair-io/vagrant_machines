@@ -1,0 +1,123 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "controller", primary: true do |controller|
+    controller.vm.box = "debian/jessie64"
+    controller.vm.hostname = 'controller'
+    controller.vm.box_url = "debian/jessie64"
+
+    controller.vm.synced_folder "ansibleDir", "/home/vagrant/ansibleDir"
+
+    controller.vm.network :private_network, ip: "192.168.56.101"
+
+    controller.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "controller"]
+	  v.customize ["modifyvm", :id, "--groups", "/ansibleCluster"]
+    end
+	
+	controller.vm.provision "shell", inline: <<-SHELL
+		rm -f /home/vagrant/.ssh/id_rsa
+		rm -f /home/vagrant/.ssh/id_rsa.pub
+		touch /home/vagrant/.ssh/id_rsa
+		touch /home/vagrant/.ssh/id_rsa.pub
+		
+		echo "-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA5Lcvovh4uCwGNtgFgqsUdAKlmEqOEFhwAOaPH5zut8DVQwca
+gqy47tD0w9si62FWxlWgGYy1h4mTsQSNGfSocfDoaqwRShS9xN+F3UOMffHSBZ1t
+h0jxwKBYJ0VTIrVj8PdG6K19EGFGha4HzqoX0veUDbUwMVIXcLGroj1cBzASKmGm
+ITsGFtuhuP62jyEUCkWmTE9xnRe4LIDZJdq1QBEoQk7TQ4GR3/FmZ9EuACxmUYI4
+/a538LNmenGXN6/YseBPmvlw+Hm2ks0lKWoLSfbFGNoinJ/+w7dToUQYM37RGz8u
+rOV+k4VxM4RtmBLnkoyhMzeyCtmO0IBK1cy1lwIDAQABAoIBAAL4SfsQxOiHUdFW
+fsPSmuJiwmm21h9qNpIcbFFZxVPHgj1rkzGNMp2PQw5kAxERY4IRzJFoXVcUN0G+
+MGLc5W8NVMdF0remi0xKJr/Xx7Q+9p4yDCEMlm8M5fgkk07JEjIn09jjn9MdoD/O
+IbXSSZroshh3eNe7HCjPdc4Wg+Jn/BtWQwN9efyVwkGho6PrNn6X5YZE9PbwoKd3
+WU8z12L/Dyopc8AHFQ4ZqPvil0N/0wGpqCcTfAzG4DmxpfRroXnJ1mk/fWVA1O4v
+gBErttjdQ43TAOW4A4m4tr55yvNuhoSKpS61Pj7mhfZnkXiiEfVGegCsMO9i4iP6
+wrosyrECgYEA9taEJj5Id8ENNsdio4YQqyUbn02uoYYwcjZ9q3VuyXOXb3Obivj1
+9WYLsyRPt7W4+Mvk669LUwHtxZqWQtexpuRHcmJYRHy1F+eQlQo35YrD4DEhRWwp
+XXeImIfDmDfgSZO5KfntgTT9ib59dmqAfvNRMx2sZQEmGYNNeojY03kCgYEA7TR4
+BFK0vnLDCMIccaBsCUq5e/b2ehXSo30UsZWaXxAGwl4B0tN4VW1ZMNfwa7wip7wq
+JHmDmF6zRw7Sth8j1B8Gmra0O5oVL1v9nXT/AJJXxP3Qtnd797aZFP0QKi5Qoa5H
+1MMVyPuhNuVgC9/L/R/ae0aFGgZyUnKHu90w/Y8CgYBN8RKtWMFdPxJDF9ZnuC+P
+OxprxQW9bzfg+J/aAizHY76PrLuSuGZB5MUQ/ghGBBWySf+xBBsOzO8dlGCaHq2z
++yUsUy14AsDUGYSn6yAXVSfgpOLSnwK4xsPVFhmG+S3TTdgMDyUVxXvBgOrw91Q3
+wfED6PzEsAYtzC4s4QVGUQKBgQCZLFiT8hRlJxZqgW58sWsSVP6R3lgrXgw3Jn5G
+bqTQ3jh/KtVinswF3ibKM6c86rA2QHu2MgGYUw7Rw/CtSk6Im8BYB8M6+bTUcELF
+etdwNxAWVRCBw4Z535/avc/CbUYEIdagvZlDv7nLCTOMd2fyfK9JC7DHrYIFW4/q
+8FrCYQKBgQClGTjONgaayxUnianc43hKDJqBXfzm9BgQpauwCOEJLPyIIGG8zyh0
+RUDTrJGBcUwjAzhtB5nArtCdcU/doKy7tkclZtziA0sXt6ynT4aFuvoXExmFqloz
+97HjBLBiAZjjTh9L9KiS+GO2qPmEiuqDObcr4EAjruLJEaIefvyhaA==
+-----END RSA PRIVATE KEY-----" >> /home/vagrant/.ssh/id_rsa
+
+		echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkty+i+Hi4LAY22AWCqxR0AqWYSo4QWHAA5o8fnO63wNVDBxqCrLju0PTD2yLrYVbGVaAZjLWHiZOxBI0Z9Khx8OhqrBFKFL3E34XdQ4x98dIFnW2HSPHAoFgnRVMitWPw90borX0QYUaFrgfOqhfS95QNtTAxUhdwsauiPVwHMBIqYaYhOwYW26G4/raPIRQKRaZMT3GdF7gsgNkl2rVAEShCTtNDgZHf8WZn0S4ALGZRgjj9rnfws2Z6cZc3r9ix4E+a+XD4ebaSzSUpagtJ9sUY2iKcn/7Dt1OhRBgzftEbPy6s5X6ThXEzhG2YEueSjKEzN7IK2Y7QgErVzLWX vagrant@controller" >> /home/vagrant/.ssh/id_rsa.pub
+		
+		touch /home/vagrant/.ssh/config
+		echo "Host 192.168.56.102
+        HostName 192.168.56.102
+        StrictHostKeyChecking no
+		
+Host 192.168.56.103
+        HostName 192.168.56.103
+        StrictHostKeyChecking no" >> /home/vagrant/.ssh/config
+		
+		#Installing ansible
+		echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
+		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+		apt-get update
+		apt-get install ansible -y
+		
+		#Adding machine1 and machine2 to /etc/ansible/hosts
+		echo "[machines]" >> /etc/ansible/hosts
+		echo "machine1 ansible_host=192.168.56.102" >> /etc/ansible/hosts
+		echo "machine2 ansible_host=192.168.56.103" >> /etc/ansible/hosts
+		
+	SHELL
+	
+
+
+  end
+
+
+  
+  config.vm.define "machine1" do |machine1|
+    machine1.vm.box = "debian/jessie64"
+    machine1.vm.hostname = 'machine1'
+    machine1.vm.box_url = "debian/jessie64"
+
+    machine1.vm.network :private_network, ip: "192.168.56.102"
+
+    machine1.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "machine1"]
+	  v.customize ["modifyvm", :id, "--groups", "/ansibleCluster"]
+    end
+	
+	machine1.vm.provision "shell", inline: <<-SHELL
+		echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkty+i+Hi4LAY22AWCqxR0AqWYSo4QWHAA5o8fnO63wNVDBxqCrLju0PTD2yLrYVbGVaAZjLWHiZOxBI0Z9Khx8OhqrBFKFL3E34XdQ4x98dIFnW2HSPHAoFgnRVMitWPw90borX0QYUaFrgfOqhfS95QNtTAxUhdwsauiPVwHMBIqYaYhOwYW26G4/raPIRQKRaZMT3GdF7gsgNkl2rVAEShCTtNDgZHf8WZn0S4ALGZRgjj9rnfws2Z6cZc3r9ix4E+a+XD4ebaSzSUpagtJ9sUY2iKcn/7Dt1OhRBgzftEbPy6s5X6ThXEzhG2YEueSjKEzN7IK2Y7QgErVzLWX vagrant@controller" >> /home/vagrant/.ssh/authorized_keys
+	SHELL
+	
+  end
+  
+  config.vm.define "machine2" do |machine2|
+    machine2.vm.box = "debian/jessie64"
+    machine2.vm.hostname = 'machine2'
+    machine2.vm.box_url = "debian/jessie64"
+
+    machine2.vm.network :private_network, ip: "192.168.56.103"
+
+    machine2.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name", "machine2"]
+	  v.customize ["modifyvm", :id, "--groups", "/ansibleCluster"]
+    end
+	
+	machine2.vm.provision "shell", inline: <<-SHELL
+		echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkty+i+Hi4LAY22AWCqxR0AqWYSo4QWHAA5o8fnO63wNVDBxqCrLju0PTD2yLrYVbGVaAZjLWHiZOxBI0Z9Khx8OhqrBFKFL3E34XdQ4x98dIFnW2HSPHAoFgnRVMitWPw90borX0QYUaFrgfOqhfS95QNtTAxUhdwsauiPVwHMBIqYaYhOwYW26G4/raPIRQKRaZMT3GdF7gsgNkl2rVAEShCTtNDgZHf8WZn0S4ALGZRgjj9rnfws2Z6cZc3r9ix4E+a+XD4ebaSzSUpagtJ9sUY2iKcn/7Dt1OhRBgzftEbPy6s5X6ThXEzhG2YEueSjKEzN7IK2Y7QgErVzLWX vagrant@controller" >> /home/vagrant/.ssh/authorized_keys
+	SHELL
+	
+  end
+  
+end
+
