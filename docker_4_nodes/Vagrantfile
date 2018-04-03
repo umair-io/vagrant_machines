@@ -1,0 +1,45 @@
+Vagrant.configure("2") do |config|
+	
+	#creates 2 docker manager VMs
+	(1..2).each do |i|
+		config.vm.define "mgr#{i}" do |node|
+			node.vm.box = "ubuntu/trusty64"
+			node.vm.hostname = "mgr#{i}"
+			node.vm.network :private_network, ip: "172.31.12.16#{i}"
+			
+			node.vm.provider :virtualbox do |v|
+				v.customize ["modifyvm", :id, "--name", "mgr#{i}"]
+				v.customize ["modifyvm", :id, "--groups", "/docker"]
+				v.customize ["modifyvm", :id, "--memory", 512]
+			end
+			
+			node.vm.provision "shell", inline: <<-SHELL
+				wget -qO- https://test.docker.com/ | sh
+			SHELL
+			
+		end
+	end
+	
+	#creates 2 docker worker VMs
+	(4..5).each do |i|
+		machineNum = i-3
+		machineName = "wrk#{machineNum}"
+		config.vm.define "#{machineName}" do |node|
+			node.vm.box = "ubuntu/trusty64"
+			node.vm.hostname = "#{machineName}"
+			node.vm.network :private_network, ip: "172.31.12.16#{i}"
+			
+			node.vm.provider :virtualbox do |v|
+				v.customize ["modifyvm", :id, "--name", "#{machineName}"]
+				v.customize ["modifyvm", :id, "--groups", "/docker"]
+				v.customize ["modifyvm", :id, "--memory", 512]
+			end
+			
+			node.vm.provision "shell", inline: <<-SHELL
+				wget -qO- https://test.docker.com/ | sh
+			SHELL
+			
+		end
+	end
+
+end
